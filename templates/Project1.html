@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project1</title>
+    <script type=text/javascript src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='js/p5.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='js/vue-dev.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+</head>
+
+<body>
+    <div id="vueApp"></div>
+</body>
+
+</html>
+
+<!-- canvas p5 js -->
+<script>
+    _number = 0
+    var night
+
+    function preload() {
+        night = loadImage("{{ url_for('static', filename='img/0239.png') }}")
+    }
+
+    function setup() {
+        createCanvas(1920, 1080);
+        background(0);
+        image(night, 0, 0)
+    }
+
+    function setImage() {
+        background(0);
+        let span = map(_number, 0, width, 2, 100)
+        if (span < 20) {
+            span = 20
+        }
+
+        for (var i = 0; i < night.width ; i += span) {
+            for (var o = 0; o < night.width; o += span) {
+                let c = night.get(i, o)
+                fill(c)
+                ellipse(i, o, span)
+            }
+        }
+    }
+</script>
+
+<script>
+    let vm = new Vue({
+        el: "#vueApp",
+        data: {
+
+        },
+        methods: {
+
+        },
+        mounted() {
+
+            // 創建Socket
+            var socket = io();
+
+            // 連線成功時執行  呼叫後端getValue方法
+            socket.on('connect', function () {
+                socket.emit('getValue');
+            });
+
+            setInterval(function(){
+                socket.emit('getValue');
+            },20)
+
+            // 
+            socket.on('setValue',  (e) => {
+                console.log(`data ${e.data}`)
+                _number = e.data
+                setImage()
+            });
+        }
+    })
+</script>
