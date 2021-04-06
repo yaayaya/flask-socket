@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Project1</title>
     <script type=text/javascript src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='js/p5.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='js/p5.min.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='js/vue-dev.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
 </head>
@@ -20,20 +20,21 @@
 
 <!-- canvas p5 js -->
 <script>
-    _number = 0
     var night
 
     function preload() {
-        night = loadImage("{{ url_for('static', filename='img/0239.png') }}")
+        night = loadImage("{{ url_for('static', filename='img/0230.jpg') }}")
+        
     }
 
     function setup() {
-        createCanvas(1920, 1080);
+        createCanvas(windowWidth, windowHeight);
         background(0);
-        image(night, 0, 0)
+        imageMode(CORNERS)
+        image(night , 0 ,0 , windowWidth, windowHeight)
     }
 
-    function setImage() {
+    function setImage(_number) {
         background(0);
         let span = map(_number, 0, width, 2, 100)
         if (span < 20) {
@@ -71,12 +72,11 @@
 
             setInterval(function(){
                 socket.emit('getValue');
-            },20)
+            },30)
 
             // 
             socket.on('setValue',  (e) => {
                 console.log(`data ${e.data}`)
-                _number = e.data
                 setImage()
             });
         }
