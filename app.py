@@ -17,6 +17,7 @@ socketio = SocketIO(app)
 _number = 0
 isPlus = True
 
+# 假資料取得
 def getNumber():
     global isPlus
     global _number

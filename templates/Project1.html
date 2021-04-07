@@ -23,22 +23,22 @@
     var night
 
     function preload() {
-        night = loadImage("{{ url_for('static', filename='img/0230.jpg') }}")
-        
+        night = loadImage("{{ url_for('static', filename='img/3080.jpg') }}")
     }
 
     function setup() {
-        createCanvas(windowWidth, windowHeight);
+        createCanvas(1920, 1080);
         background(0);
         imageMode(CORNERS)
-        image(night , 0 ,0 , windowWidth, windowHeight)
+        let c = image(night , 0 ,0 , 1920, 1080)
+        console.log(c)
     }
 
     function setImage(_number) {
         background(0);
-        let span = map(_number, 0, width, 2, 100)
-        if (span < 20) {
-            span = 20
+        let span = map(mouseX, 0, width, 2, 100)
+        if (span < 10) {
+            span = 10
         }
 
         for (var i = 0; i < night.width ; i += span) {
@@ -70,14 +70,14 @@
                 socket.emit('getValue');
             });
 
+            // 每30毫秒呼叫後端getValue
             setInterval(function(){
                 socket.emit('getValue');
             },30)
 
-            // 
+            // 接收到後端請求，取得資料後設定新圖片
             socket.on('setValue',  (e) => {
-                console.log(`data ${e.data}`)
-                setImage()
+                setImage(e.data)
             });
         }
     })
