@@ -13,7 +13,7 @@
 
 <body>
     <div id="vueApp">
-        <img id="ccaImg" :style="styleObj" src="{{ url_for('static', filename='img/3080.jpg') }}">
+        <img id="ccaImg" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/3070.jpg') }}">
     </div>
 </body>
 
@@ -50,7 +50,6 @@
             setBlur(){
                 setInterval(() => {
                     let _blurDiff = (this.blurValue[0] - this.blurValue[1])
-                    console.log(_blurDiff)
                     if (_blurDiff > 0){
                         if (this.currenBlurValue <= this.blurValue[0]){
                             this.currenBlurValue += (_blurDiff/10)
@@ -61,7 +60,6 @@
                             this.currenBlurValue += (_blurDiff/10)
                         }
                     }
-                    console.log(vm.currenBlurValue)
                     this.styleObj.filter = `blur(${vm.currenBlurValue}px)`
                 }, 50);
             }
@@ -80,7 +78,44 @@
 
             // 接收到後端請求，取得資料後設定新圖片
             socket.on('setValue', (e) => {
-                e.data = e.data / 10
+                // 50公分以內都最模糊   blur(100px)
+                // 70公分以內都最模糊   blur(70px)
+                // 100公分             blur(20px)
+                // 150公分             blur(15px)
+                // 200公分             blur(5px)
+                // 300公分以上都是      blur(0px)
+                // e.data = 公分
+                console.log(`Distance:${e.data}`)
+                // 公分轉換為模糊度
+                if (e.data <= 50)
+                {
+                    e.data = 100
+                }
+                else if (e.data > 50 && e.data <= 70 )
+                {
+                    e.data = 100 - ((3/2)*(e.data-50))
+                }
+                else if(e.data > 70 && e.data <= 100)
+                {
+                    e.data = 70 - ((5/3)*(e.data-70))
+                }
+                else if(e.data > 100 && e.data <= 150)
+                {
+                    e.data = 20 - ((1/10)*(e.data-100))
+                }
+                else if(e.data > 150 && e.data <= 200)
+                {
+                    e.data = 15 - ((1/5)*(e.data-150))
+                }
+                else if(e.data > 200 && e.data <= 300)
+                {
+                    e.data = 5 - ((1/20)*(e.data-200))
+                }
+                else{
+                    e.data = 0
+                }
+                console.log(`Blur:${e.data}`)
+
                 // 資料與資料接收間隔時間
                 // 更新資料延遲時間舊[1]
                 // 放置於新 資料延遲時間[0]
@@ -104,3 +139,18 @@
         }
     })
 </script>
+
+<style>
+    body {
+        margin:0px;
+        overflow-y: hidden; /* Hide vertical scrollbar */
+        overflow-x: hidden; /* Hide horizontal scrollbar */
+    }
+
+    .ccaImg{
+        width:100%; 
+        height: 100%;
+        margin:0;
+
+    }
+</style>

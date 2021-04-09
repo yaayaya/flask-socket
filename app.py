@@ -21,9 +21,9 @@ isPlus = True
 def getNumber():
     global isPlus
     global _number
-    if (isPlus and _number <= 100):
+    if (isPlus and _number <= 300):
         _number += 10
-        if (_number >= 100):
+        if (_number >= 300):
             isPlus = False
     elif (not isPlus and _number > 0):
         _number -= 10
