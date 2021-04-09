@@ -7,78 +7,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Project1</title>
     <script type=text/javascript src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='js/p5.min.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='js/vue-dev.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
 </head>
 
 <body>
-    <div id="vueApp"></div>
+    <div id="vueApp">
+        <img id="ccaImg" :style="styleObj" src="{{ url_for('static', filename='img/3080.jpg') }}">
+    </div>
 </body>
 
 </html>
 
-<!-- canvas p5 js -->
 <script>
-    var night
+    // 創建Socket
+    var socket = io();
+    startTime = 0
+    DataDelayTime = 0
+    var targetElm = document.querySelector('#ccaImg')
 
-    function preload() {
-        night = loadImage("{{ url_for('static', filename='img/3080.jpg') }}")
-    }
-
-    function setup() {
-        createCanvas(1920, 1080);
-        background(0);
-        imageMode(CORNERS)
-        let c = image(night , 0 ,0 , 1920, 1080)
-        console.log(c)
-    }
-
-    function setImage(_number) {
-        background(0);
-        let span = map(mouseX, 0, width, 2, 100)
-        if (span < 10) {
-            span = 10
-        }
-
-        for (var i = 0; i < night.width ; i += span) {
-            for (var o = 0; o < night.width; o += span) {
-                let c = night.get(i, o)
-                fill(c)
-                ellipse(i, o, span)
-            }
-        }
-    }
-</script>
-
-<script>
     let vm = new Vue({
         el: "#vueApp",
         data: {
+            blurValue: [0, 0],
+            startTime: [(new Date).getTime(), 0],
+            DataDelayTime: [0, 0],
+            isLoading: false,
+            currenBlurValue : 0,
 
+            styleObj:{
+                filter: 'blur(0px)'
+            }
         },
         methods: {
-
+            getValue() {
+                // 可取得資料時 發送
+                if (!this.isLoading) {
+                    this.isLoading = true
+                    socket.emit('getValue');
+                }
+            },
+            setBlur(){
+                setInterval(() => {
+                    let _blurDiff = (this.blurValue[0] - this.blurValue[1])
+                    console.log(_blurDiff)
+                    if (_blurDiff > 0){
+                        if (this.currenBlurValue <= this.blurValue[0]){
+                            this.currenBlurValue += (_blurDiff/10)
+                        }
+                    }
+                    else{
+                        if (this.currenBlurValue >= this.blurValue[0]){
+                            this.currenBlurValue += (_blurDiff/10)
+                        }
+                    }
+                    console.log(vm.currenBlurValue)
+                    this.styleObj.filter = `blur(${vm.currenBlurValue}px)`
+                }, 50);
+            }
         },
         mounted() {
 
-            // 創建Socket
-            var socket = io();
+            // 每500毫秒檢查一次是否已可去取得資料
+            setInterval(() => {
+                this.getValue()
+            }, 500);
 
             // 連線成功時執行  呼叫後端getValue方法
             socket.on('connect', function () {
                 socket.emit('getValue');
             });
 
-            // 每30毫秒呼叫後端getValue
-            setInterval(function(){
-                socket.emit('getValue');
-            },30)
-
             // 接收到後端請求，取得資料後設定新圖片
-            socket.on('setValue',  (e) => {
-                setImage(e.data)
+            socket.on('setValue', (e) => {
+                e.data = e.data / 10
+                // 資料與資料接收間隔時間
+                // 更新資料延遲時間舊[1]
+                // 放置於新 資料延遲時間[0]
+                this.DataDelayTime[1] = this.DataDelayTime[0]
+                this.startTime[1] = this.startTime[0]
+                this.startTime[0] = (new Date).getTime()
+                this.DataDelayTime[0] = (new Date).getTime() - this.startTime[1]
+
+                // 資料
+                this.blurValue[1] = this.blurValue[0]
+                this.blurValue[0] = e.data
+
+                // 當前模糊值
+                this.currenBlurValue = this.blurValue[1]
+
+                this.isLoading = false
             });
+
+            // 設定模糊
+            this.setBlur()
         }
     })
 </script>

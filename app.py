@@ -21,13 +21,13 @@ isPlus = True
 def getNumber():
     global isPlus
     global _number
-    if (isPlus and _number <= 1920):
+    if (isPlus and _number <= 100):
         _number += 10
-        if (_number >= 1920):
+        if (_number >= 100):
             isPlus = False
-    elif (not isPlus and _number > 50):
+    elif (not isPlus and _number > 0):
         _number -= 10
-        if (_number <= 300):
+        if (_number <= 0):
             isPlus = True
     return _number
 
@@ -49,4 +49,4 @@ def test_disconnect():
     print('Client disconnected', request.sid)
 
 if __name__ == "__main__":
-	socketio.run(app,__debug__)
+	socketio.run(app)
