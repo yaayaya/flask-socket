@@ -52,12 +52,12 @@
                     let _blurDiff = (this.blurValue[0] - this.blurValue[1])
                     if (_blurDiff > 0){
                         if (this.currenBlurValue <= this.blurValue[0]){
-                            this.currenBlurValue += (_blurDiff/10)
+                            this.currenBlurValue += (_blurDiff/7)
                         }
                     }
                     else{
                         if (this.currenBlurValue >= this.blurValue[0]){
-                            this.currenBlurValue += (_blurDiff/10)
+                            this.currenBlurValue += (_blurDiff/7)
                         }
                     }
                     this.styleObj.filter = `blur(${vm.currenBlurValue}px)`
@@ -69,7 +69,7 @@
             // 每500毫秒檢查一次是否已可去取得資料
             setInterval(() => {
                 this.getValue()
-            }, 500);
+            }, 100);
 
             // 連線成功時執行  呼叫後端getValue方法
             socket.on('connect', function () {
@@ -78,6 +78,7 @@
 
             // 接收到後端請求，取得資料後設定新圖片
             socket.on('setValue', (e) => {
+		e.data /= 10
                 // 20公分以內都最模糊   blur(100px)
                 // 40公分以內都最模糊   blur(70px)
                 // 70公分              blur(20px)
@@ -149,7 +150,7 @@
 
     .ccaImg{
         width:100%; 
-        height: 100%;
+        height: 100vh;
         margin:0;
 
     }

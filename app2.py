@@ -14,26 +14,47 @@ socketio = SocketIO(app)
 # Sensor
 # Import required Python libraries
 import time
-import qwiic
+import RPi.GPIO as GPIO
 
-print("VL53L1X Qwiic Test\n")
-ToF = qwiic.QwiicVL53L1X()
-if (ToF.sensor_init() == None): # Begin returns 0 on a good init
-    print("Sensor online!\n")
-distance = 0
+# Use BCM GPIO references
+# instead of physical pin numbers
+GPIO.setmode(GPIO.BCM)
+
+# Define GPIO to use on Pi
+GPIO_TRIGGER = 4
+GPIO_ECHO = 17
+
+print("Ultrasonic Measurement")
+
+# Set pins as output and input
+GPIO.setup(GPIO_TRIGGER,GPIO.OUT)  # Trigger
+GPIO.setup(GPIO_ECHO,GPIO.IN)      # Echo
+
+# Set trigger to False (Low)
+GPIO.output(GPIO_TRIGGER, False)
+prev_distance = 0
 def get_distance():
-    global distance
-    try:
-        ToF.start_ranging() # Write configuration bytes to initiate measurement
-        time.sleep(.03)
-        distance = ToF.get_distance()# Get the result of the measurement from the sensor
-        time.sleep(.03)
-        ToF.stop_ranging()
-        return distance
-        # print("Distance(mm): %s" % (distance))
-    except Exception as e:
-        print(e)
-        return distance
+    GPIO.output(GPIO_TRIGGER, True)
+    time.sleep(0.1)
+    GPIO.output(GPIO_TRIGGER, False)
+    start = time.time()
+    while GPIO.input(GPIO_ECHO)==0:
+      start = time.time()
+    while GPIO.input(GPIO_ECHO)==1:
+      stop = time.time()
+    # Calculate pulse length
+    elapsed = stop-start
+    # Distance pulse travelled in that time is time
+    # multiplied by the speed of sound (cm/s)
+    distance = elapsed * 34000
+    # That was the distance there and back so halve the value
+    distance = distance / 2
+    global prev_distance
+    if distance > 2500:
+        return prev_distance
+    else:
+        prev_distance = distance
+    return distance
 
 # 取得資料
 _number = 0
@@ -55,6 +76,7 @@ def getNumber():
 
 # 把網頁叫出來  CORS防止圖片爆炸
 @app.route('/')
+@cross_origin()
 def index():
     return render_template('Project1.html')
 
