@@ -13,7 +13,14 @@
 
 <body>
     <div id="vueApp">
-        <img id="ccaImg" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/3070.jpg') }}">
+        <img v-show="nowImg == 1" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/1.jpg') }}">
+        <img v-show="nowImg == 2" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/2.jpg') }}">
+        <img v-show="nowImg == 3" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/3.jpg') }}">
+        <img v-show="nowImg == 4" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/4.jpg') }}">
+        <img v-show="nowImg == 5" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/s1.jpg') }}">
+        <img v-show="nowImg == 6" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/s2.jpg') }}">
+        <img v-show="nowImg == 7" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/s3.jpg') }}">
+        <img v-show="nowImg == 8" :style="styleObj" class="ccaImg" src="{{ url_for('static', filename='img/s4.jpg') }}">
     </div>
 </body>
 
@@ -24,7 +31,6 @@
     var socket = io();
     startTime = 0
     DataDelayTime = 0
-    var targetElm = document.querySelector('#ccaImg')
 
     let vm = new Vue({
         el: "#vueApp",
@@ -37,7 +43,10 @@
 
             styleObj:{
                 filter: 'blur(0px)'
-            }
+            },
+            nowImg : 1,
+            mainImg : 1,
+            isSubImg : false
         },
         methods: {
             getValue() {
@@ -50,26 +59,54 @@
             setBlur(){
                 setInterval(() => {
                     let _blurDiff = (this.blurValue[0] - this.blurValue[1])
-                    if (_blurDiff > 0){
-                        if (this.currenBlurValue <= this.blurValue[0]){
-                            this.currenBlurValue += (_blurDiff/7)
+                    let DataDelayTime = this.DataDelayTime
+                    let addFrame = this.DataDelayTime[0] / 40
+                    console.log(this.currenBlurValue)
+
+                    this.currenBlurValue += (_blurDiff/addFrame)
+                    // 
+                    if (this.isSubImg == false)
+                    {
+                        // 當前模糊超過70 轉換為subImg
+                        if (this.currenBlurValue > 70 )
+                        {
+                            this.nowImg = getRandomInt(5) + 4
+                            this.isSubImg = true
+                        }
+                        else
+                        {
+                            this.nowImg = this.mainImg
                         }
                     }
-                    else{
-                        if (this.currenBlurValue >= this.blurValue[0]){
-                            this.currenBlurValue += (_blurDiff/7)
+                    else
+                    {
+                        if (this.currenBlurValue <= 70 )
+                        {
+                            this.nowImg = this.mainImg
+                            this.isSubImg = false
                         }
                     }
+                    console.log("nowImg : " + this.nowImg)
                     this.styleObj.filter = `blur(${vm.currenBlurValue}px)`
-                }, 50);
+                }, 40);
             }
         },
         mounted() {
-
             // 每500毫秒檢查一次是否已可去取得資料
             setInterval(() => {
                 this.getValue()
             }, 100);
+
+            // 定時換圖片
+            setInterval(() =>{
+                if (this.mainImg < 4) 
+                {
+                    this.mainImg++
+                }
+                else{
+                    this.mainImg = 1
+                }   
+            } , 5000)
 
             // 連線成功時執行  呼叫後端getValue方法
             socket.on('connect', function () {
@@ -78,7 +115,7 @@
 
             // 接收到後端請求，取得資料後設定新圖片
             socket.on('setValue', (e) => {
-		e.data /= 10
+		        e.data /= 10
                 // 20公分以內都最模糊   blur(100px)
                 // 40公分以內都最模糊   blur(70px)
                 // 70公分              blur(20px)
@@ -116,7 +153,7 @@
                     e.data = 0
                 }
                 console.log(`Blur:${e.data}`)
-
+                
                 // 資料與資料接收間隔時間
                 // 更新資料延遲時間舊[1]
                 // 放置於新 資料延遲時間[0]
@@ -139,6 +176,11 @@
             this.setBlur()
         }
     })
+
+
+    function getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+    }
 </script>
 
 <style>
