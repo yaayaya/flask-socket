@@ -51,7 +51,8 @@ def getNumber():
         _number -= 50
         if (_number <= 0):
             isPlus = True
-    time.sleep(.5)
+    aaa = random.randrange(3)
+    time.sleep(aaa/10)
     return _number
 
 # 把網頁叫出來  CORS防止圖片爆炸

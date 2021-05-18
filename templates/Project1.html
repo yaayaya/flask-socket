@@ -60,10 +60,10 @@
                 setInterval(() => {
                     let _blurDiff = (this.blurValue[0] - this.blurValue[1])
                     let DataDelayTime = this.DataDelayTime
-                    let addFrame = this.DataDelayTime[0] / 40
-                    console.log(this.currenBlurValue)
-
-                    this.currenBlurValue += (_blurDiff/addFrame)
+                    let addFrame = this.DataDelayTime[1] / 40
+                    console.log(DataDelayTime)
+                    
+                    this.currenBlurValue += (_blurDiff/8)
                     // 
                     if (this.isSubImg == false)
                     {
@@ -86,7 +86,6 @@
                             this.isSubImg = false
                         }
                     }
-                    console.log("nowImg : " + this.nowImg)
                     this.styleObj.filter = `blur(${vm.currenBlurValue}px)`
                 }, 40);
             }
